@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Test de Inteligencias Múltiples — Solo resultado más alto</title>
+  <style>
+    :root{
+      --bg:#0b1222;
+      --panel:#0f172a;
+      --card:#0c1326;
+      --text:#e5e7eb;
+      --muted:#94a3b8;
+      --accent:#22c55e;
+      --accent2:#60a5fa;
+      --border:#1f2937;
+      --danger:#ef4444;
+      --shadow: 0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.03);
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;background:linear-gradient(180deg,var(--bg),#0e152b 35%);color:var(--text);line-height:1.6}
+    header.hero{padding:32px 16px 12px;text-align:center}
+    h1{margin:0 0 6px;font-size:clamp(1.4rem,2.6vw,2rem)}
+    p.lead{margin:0 auto;max-width:900px;color:var(--muted)}
+    .container{max-width:1000px;margin:18px auto 80px;padding:0 16px}
+    .card{background:linear-gradient(180deg,#0d162d 0,#0a1224 100%);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+    .card-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+    .pill{padding:6px 10px;border:1px solid var(--border);border-radius:999px;color:var(--muted);font-size:.9rem}
+    .grid{display:grid;grid-template-columns:1fr;gap:10px;padding:16px}
+    @media(min-width:720px){.grid{grid-template-columns:1fr 1fr}}
+    .q{background:radial-gradient(1200px 200px at 10% -10%, rgba(255,255,255,.05), transparent 40%),linear-gradient(180deg,#0c1428 0,#0a1224 100%);border:1px solid var(--border);border-radius:12px;padding:14px 14px 10px;display:flex;gap:12px;align-items:flex-start}
+    .q .n{flex:0 0 auto;width:36px;height:36px;border:1px solid var(--border);border-radius:10px;display:grid;place-items:center;background:#0f1a34;color:#9db3ff;font-weight:700}
+    .q label{display:flex;gap:10px;align-items:center;cursor:pointer;font-weight:600}
+    .q p{margin:0 0 8px}
+    .q .small{color:var(--muted);font-size:.92rem}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;padding:16px;border-top:1px solid var(--border);background:linear-gradient(180deg,#0b1429,#0a1224)}
+    button{appearance:none;border:1px solid var(--border);background:#0f1a34;color:var(--text);padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:700}
+    button.primary{background:linear-gradient(180deg,#1f8a4f,#167a44);border-color:#146d3d}
+    button.secondary{background:linear-gradient(180deg,#255da1,#1e4891);border-color:#193f7e}
+    button.ghost{background:transparent}
+    .result{margin:0;padding:18px 18px 22px;border-top:1px dashed var(--border);display:none}
+    .winner{font-size:1.1rem;font-weight:800;margin-bottom:6px}
+    .desc{color:var(--muted)}
+    .note{margin-top:10px;color:var(--muted);font-size:.9rem}
+    .chip{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:12px;background:#0f1a34;margin-top:8px}
+    .chip b{color:#bbf7d0}
+    footer{max-width:1000px;margin:24px auto 32px;padding:0 16px;color:var(--muted);text-align:center}
+    .kbd{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;border:1px solid var(--border);border-bottom-width:2px;border-radius:6px;padding:0 6px;background:#0d162c;color:#cbd5e1}
+    .hint{color:var(--muted);font-size:.86rem}
+    .danger{color:#fecaca}
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <h1>Test de Inteligencias Múltiples (Gardner)</h1>
+    <p class="lead">Marcá <strong>Verdadero</strong> sólo en las afirmaciones que te describen. Al finalizar, el sistema mostrará <strong>la inteligencia predominante</strong> (si hay empates, se resuelven por prioridad A→G). Este instrumento es orientativo.</p>
+  </header>
+
+  <div class="container">
+    <div class="card" id="formCard">
+      <div class="card-head">
+        <span class="pill">35 afirmaciones</span>
+        <span class="pill">7 tipos • resultado único</span>
+      </div>
+
+      <div class="grid" id="questions"></div>
+
+      <div class="actions">
+        <button class="primary" id="calcBtn">Calcular resultado</button>
+        <button class="secondary" id="resetBtn">Borrar respuestas</button>
+        <button class="ghost" id="printBtn" title="Guardar/Imprimir">Imprimir / Guardar PDF</button>
+      </div>
+
+      <div class="result" id="result">
+        <div class="winner" id="winner"></div>
+        <div class="desc" id="desc"></div>
+        <div class="chip"><span>Puntaje ganador:</span> <b id="score"></b> <span>/5</span></div>
+        <div class="note">Prioridad de desempate (si corresponde): Lingüística → Lógico-Matemática → Visual-Espacial → Corporal-Cinestésica → Musical → Intrapersonal → Interpersonal.</div>
+      </div>
+    </div>
+  </div>
+
+  
+
+  <script>
+    // 35 ítems
+    const items = [
+      "Prefiero hacer un mapa que explicarle a alguien cómo tiene que llegar a un lugar determinado.",
+      "Si estoy enojado o contento, generalmente sé la razón exacta del porqué.",
+      "Sé tocar, o antes sabía, un instrumento musical.",
+      "Asocio la música con mis estados de ánimo.",
+      "Puedo sumar o multiplicar mentalmente con mucha rapidez.",
+      "Puedo ayudar a un(a) amigo(a) a manejar sus sentimientos porque antes yo pude con algo parecido.",
+      "Me gusta trabajar con calculadora y computadoras.",
+      "Aprendo rápidamente a bailar un baile nuevo.",
+      "No me es difícil decir lo que pienso durante una discusión o debate.",
+      "Disfruto de una buena charla, prédica o sermón.",
+      "Siempre distingo el Norte del Sur, esté donde esté.",
+      "Me gusta reunir grupos de personas en una fiesta o evento especial.",
+      "La vida me parece vacía sin música.",
+      "Siempre entiendo los gráficos que vienen en instrucciones de equipos o instrumentos.",
+      "Me gusta resolver rompecabezas y entretenerme con juegos electrónicos.",
+      "Me fue fácil aprender a andar en bicicleta o patines.",
+      "Me enojo cuando escucho una afirmación que me parece ilógica o absurda.",
+      "Soy capaz de convencer a otros de seguir mis planes o ideas.",
+      "Tengo buen sentido del equilibrio y de la coordinación.",
+      "A menudo capto relaciones entre números con mayor rapidez que otros.",
+      "Me gusta construir modelos, maquetas o hacer esculturas.",
+      "Soy bueno para encontrar el significado preciso de las palabras.",
+      "Puedo mirar un objeto de una manera y con facilidad verlo al revés.",
+      "Frecuentemente relaciono una canción con algo que ocurrió en mi vida.",
+      "Me gusta trabajar con números y figuras.",
+      "Me gusta sentarme muy callado a pensar y reflexionar sobre mis sentimientos íntimos.",
+      "Solo con mirar formas de construcciones y estructuras me siento a gusto.",
+      "Cuando estoy en la ducha o solo, tarareo, canto o silbo.",
+      "Soy bueno para el atletismo.",
+      "Me gusta escribir cartas o mensajes largos a mis amigos.",
+      "Generalmente noto la expresión o gestos que tengo en la cara.",
+      "Muchas veces me doy cuenta de las expresiones o gestos de otras personas.",
+      "Reconozco mis estados de ánimo; no me cuesta identificarlos.",
+      "Me doy cuenta de los estados de ánimo de las personas con quienes me encuentro.",
+      "Me doy cuenta bastante bien de lo que otros piensan de mí."
+    ];
+
+    // Mapeo preguntas → Inteligencias
+    const key = {
+      A: [9,10,17,22,30],           // Lingüística
+      B: [5,7,15,20,25],            // Lógico-Matemática
+      C: [1,11,14,23,27],           // Visual-Espacial
+      D: [8,16,19,21,29],           // Corporal-Cinestésica
+      E: [3,4,13,24,28],            // Musical
+      F: [2,6,26,31,33],            // Intrapersonal
+      G: [12,18,32,34,35]           // Interpersonal
+    };
+
+    const labels = {
+      A: "Lingüística (Verbal)",
+      B: "Lógico-Matemática",
+      C: "Visual-Espacial",
+      D: "Corporal-Cinestésica",
+      E: "Musical-Rítmica",
+      F: "Intrapersonal",
+      G: "Interpersonal"
+    };
+
+    const descriptions = {
+      A: "Uso efectivo de la palabra oral y escrita; gusto por leer, escribir y debatir.",
+      B: "Facilidad con números, patrones y razonamiento lógico/científico.",
+      C: "Imaginar, percibir y manipular formas/espacios; buena orientación y diseño.",
+      D: "Resolver y crear usando el cuerpo (deporte, danza, destreza manual).",
+      E: "Percibir, crear y expresar a través de ritmos, melodías y sonidos.",
+      F: "Autoconocimiento y autorreflexión; identificar emociones y motivaciones.",
+      G: "Entender a los demás, empatía, trabajo en equipo y liderazgo social."
+    };
+
+    // Render dinámico de preguntas
+    const $q = document.getElementById("questions");
+    items.forEach((txt, i) => {
+      const n = i + 1;
+      const wrap = document.createElement("div");
+      wrap.className = "q";
+      wrap.innerHTML = `
+        <div class="n">${n}</div>
+        <div style="flex:1">
+          <p>${txt}</p>
+          <label class="small">
+            <input type="checkbox" data-n="${n}"> Marcar como <strong>Verdadero</strong>
+          </label>
+        </div>
+      `;
+      $q.appendChild(wrap);
+    });
+
+    const getCheckedNumbers = () => {
+      const checks = Array.from(document.querySelectorAll('input[type="checkbox"][data-n]'));
+      return checks.filter(c => c.checked).map(c => Number(c.dataset.n));
+    };
+
+    function calcScores(){
+      const checked = new Set(getCheckedNumbers());
+      const scores = {A:0,B:0,C:0,D:0,E:0,F:0,G:0};
+      for(const k of Object.keys(key)){
+        key[k].forEach(n => { if(checked.has(n)) scores[k]++; });
+      }
+      return scores;
+    }
+
+    function computeWinner(scores){
+      // Devuelve solo UNA, prioridad A→G en empates
+      const order = ["A","B","C","D","E","F","G"];
+      let bestKey = order[0];
+      let bestVal = scores[bestKey];
+      for(const k of order){
+        if(scores[k] > bestVal){
+          bestVal = scores[k];
+          bestKey = k;
+        }
+      }
+      return {key: bestKey, value: bestVal};
+    }
+
+    function showResult(){
+      const scores = calcScores();
+      const {key, value} = computeWinner(scores);
+      const $res = document.getElementById("result");
+      const $winner = document.getElementById("winner");
+      const $desc = document.getElementById("desc");
+      const $score = document.getElementById("score");
+
+      if(Object.values(scores).every(v => v===0)){
+        $winner.innerHTML = "<span class='danger'>Aún no marcaste ningún 'Verdadero'.</span>";
+        $desc.textContent = "";
+        $score.textContent = "0";
+        $res.style.display = "block";
+        $res.scrollIntoView({behavior:"smooth", block:"start"});
+        return;
+      }
+
+      $winner.textContent = "Inteligencia predominante: " + labels[key];
+      $desc.textContent = descriptions[key];
+      $score.textContent = String(value);
+      $res.style.display = "block";
+      $res.scrollIntoView({behavior:"smooth", block:"start"});
+    }
+
+    document.getElementById("calcBtn").addEventListener("click", showResult);
+    document.getElementById("resetBtn").addEventListener("click", () => {
+      document.querySelectorAll('input[type="checkbox"][data-n]').forEach(c => c.checked = false);
+      document.getElementById("result").style.display = "none";
+      window.scrollTo({top:0, behavior:"smooth"});
+    });
+    document.getElementById("printBtn").addEventListener("click", () => window.print());
+  </script>
+</body>
+</html>
