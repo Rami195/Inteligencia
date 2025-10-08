@@ -3,19 +3,12 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Test de Inteligencias Múltiples — Solo resultado más alto</title>
+  <title>Test de Inteligencias Múltiples — Respuesta obligatoria</title>
   <style>
     :root{
-      --bg:#0b1222;
-      --panel:#0f172a;
-      --card:#0c1326;
-      --text:#e5e7eb;
-      --muted:#94a3b8;
-      --accent:#22c55e;
-      --accent2:#60a5fa;
-      --border:#1f2937;
-      --danger:#ef4444;
-      --shadow: 0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.03);
+      --bg:#0b1222; --panel:#0f172a; --card:#0c1326; --text:#e5e7eb; --muted:#94a3b8;
+      --accent:#22c55e; --accent2:#60a5fa; --border:#1f2937; --danger:#ef4444;
+      --shadow:0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.03);
     }
     *{box-sizing:border-box}
     body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;background:linear-gradient(180deg,var(--bg),#0e152b 35%);color:var(--text);line-height:1.6}
@@ -26,13 +19,14 @@
     .card{background:linear-gradient(180deg,#0d162d 0,#0a1224 100%);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
     .card-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
     .pill{padding:6px 10px;border:1px solid var(--border);border-radius:999px;color:var(--muted);font-size:.9rem}
+    form{margin:0}
     .grid{display:grid;grid-template-columns:1fr;gap:10px;padding:16px}
     @media(min-width:720px){.grid{grid-template-columns:1fr 1fr}}
     .q{background:radial-gradient(1200px 200px at 10% -10%, rgba(255,255,255,.05), transparent 40%),linear-gradient(180deg,#0c1428 0,#0a1224 100%);border:1px solid var(--border);border-radius:12px;padding:14px 14px 10px;display:flex;gap:12px;align-items:flex-start}
     .q .n{flex:0 0 auto;width:36px;height:36px;border:1px solid var(--border);border-radius:10px;display:grid;place-items:center;background:#0f1a34;color:#9db3ff;font-weight:700}
-    .q label{display:flex;gap:10px;align-items:center;cursor:pointer;font-weight:600}
-    .q p{margin:0 0 8px}
-    .q .small{color:var(--muted);font-size:.92rem}
+    .q p{margin:0 0 10px}
+    .opts{display:flex;gap:10px;flex-wrap:wrap}
+    .opt{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);background:#0f1a34;border-radius:10px;padding:8px 10px}
     .actions{display:flex;gap:10px;flex-wrap:wrap;padding:16px;border-top:1px solid var(--border);background:linear-gradient(180deg,#0b1429,#0a1224)}
     button{appearance:none;border:1px solid var(--border);background:#0f1a34;color:var(--text);padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:700}
     button.primary{background:linear-gradient(180deg,#1f8a4f,#167a44);border-color:#146d3d}
@@ -41,19 +35,17 @@
     .result{margin:0;padding:18px 18px 22px;border-top:1px dashed var(--border);display:none}
     .winner{font-size:1.1rem;font-weight:800;margin-bottom:6px}
     .desc{color:var(--muted)}
-    .note{margin-top:10px;color:var(--muted);font-size:.9rem}
     .chip{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:12px;background:#0f1a34;margin-top:8px}
     .chip b{color:#bbf7d0}
+    .alert{margin:0 16px 12px;color:#fecaca}
     footer{max-width:1000px;margin:24px auto 32px;padding:0 16px;color:var(--muted);text-align:center}
     .kbd{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;border:1px solid var(--border);border-bottom-width:2px;border-radius:6px;padding:0 6px;background:#0d162c;color:#cbd5e1}
-    .hint{color:var(--muted);font-size:.86rem}
-    .danger{color:#fecaca}
   </style>
 </head>
 <body>
   <header class="hero">
     <h1>Test de Inteligencias Múltiples (Gardner)</h1>
-    <p class="lead">Marcá <strong>Verdadero</strong> sólo en las afirmaciones que te describen. Al finalizar, el sistema mostrará <strong>la inteligencia predominante</strong> (si hay empates, se resuelven por prioridad A→G). Este instrumento es orientativo.</p>
+    <p class="lead">Seleccioná <strong>Verdadero</strong> o <strong>Falso</strong> en <u>todas</u> las afirmaciones. Al finalizar se mostrará <strong>la inteligencia predominante</strong>. Instrumento orientativo.</p>
   </header>
 
   <div class="container">
@@ -63,7 +55,10 @@
         <span class="pill">7 tipos • resultado único</span>
       </div>
 
-      <div class="grid" id="questions"></div>
+      <form id="miForm" novalidate>
+        <div id="alert" class="alert" aria-live="polite"></div>
+        <div class="grid" id="questions"></div>
+      </form>
 
       <div class="actions">
         <button class="primary" id="calcBtn">Calcular resultado</button>
@@ -75,15 +70,14 @@
         <div class="winner" id="winner"></div>
         <div class="desc" id="desc"></div>
         <div class="chip"><span>Puntaje ganador:</span> <b id="score"></b> <span>/5</span></div>
-        <div class="note">Prioridad de desempate (si corresponde): Lingüística → Lógico-Matemática → Visual-Espacial → Corporal-Cinestésica → Musical → Intrapersonal → Interpersonal.</div>
       </div>
     </div>
   </div>
 
-  
+  <footer>Archivo HTML + CSS (con JS mínimo). Podés abrirlo localmente o subirlo a <span class="kbd">GitHub Pages</span>, <span class="kbd">Vercel</span> o <span class="kbd">Netlify</span>.</footer>
 
   <script>
-    // 35 ítems
+    // Ítems (35)
     const items = [
       "Prefiero hacer un mapa que explicarle a alguien cómo tiene que llegar a un lugar determinado.",
       "Si estoy enojado o contento, generalmente sé la razón exacta del porqué.",
@@ -124,13 +118,13 @@
 
     // Mapeo preguntas → Inteligencias
     const key = {
-      A: [9,10,17,22,30],           // Lingüística
-      B: [5,7,15,20,25],            // Lógico-Matemática
-      C: [1,11,14,23,27],           // Visual-Espacial
-      D: [8,16,19,21,29],           // Corporal-Cinestésica
-      E: [3,4,13,24,28],            // Musical
-      F: [2,6,26,31,33],            // Intrapersonal
-      G: [12,18,32,34,35]           // Interpersonal
+      A: [9,10,17,22,30], // Lingüística
+      B: [5,7,15,20,25],  // Lógico-Matemática
+      C: [1,11,14,23,27], // Visual-Espacial
+      D: [8,16,19,21,29], // Corporal-Cinestésica
+      E: [3,4,13,24,28],  // Musical
+      F: [2,6,26,31,33],  // Intrapersonal
+      G: [12,18,32,34,35] // Interpersonal
     };
 
     const labels = {
@@ -142,7 +136,6 @@
       F: "Intrapersonal",
       G: "Interpersonal"
     };
-
     const descriptions = {
       A: "Uso efectivo de la palabra oral y escrita; gusto por leer, escribir y debatir.",
       B: "Facilidad con números, patrones y razonamiento lógico/científico.",
@@ -153,7 +146,8 @@
       G: "Entender a los demás, empatía, trabajo en equipo y liderazgo social."
     };
 
-    // Render dinámico de preguntas
+    // Render dinámico con radios Verdadero/Falso (obligatorio)
+    const $form = document.getElementById("miForm");
     const $q = document.getElementById("questions");
     items.forEach((txt, i) => {
       const n = i + 1;
@@ -163,69 +157,80 @@
         <div class="n">${n}</div>
         <div style="flex:1">
           <p>${txt}</p>
-          <label class="small">
-            <input type="checkbox" data-n="${n}"> Marcar como <strong>Verdadero</strong>
-          </label>
+          <div class="opts" role="radiogroup" aria-label="Pregunta ${n}">
+            <label class="opt">
+              <input type="radio" name="q${n}" value="1" required>
+              Verdadero
+            </label>
+            <label class="opt">
+              <input type="radio" name="q${n}" value="0">
+              Falso
+            </label>
+          </div>
         </div>
       `;
       $q.appendChild(wrap);
     });
 
-    const getCheckedNumbers = () => {
-      const checks = Array.from(document.querySelectorAll('input[type="checkbox"][data-n]'));
-      return checks.filter(c => c.checked).map(c => Number(c.dataset.n));
-    };
+    function getValues(){
+      const vals = {};
+      for(let i=1;i<=items.length;i++){
+        const sel = $form.querySelector(`input[name="q${i}"]:checked`);
+        vals[i] = sel ? Number(sel.value) : null;
+      }
+      return vals;
+    }
 
     function calcScores(){
-      const checked = new Set(getCheckedNumbers());
+      const choices = getValues();
       const scores = {A:0,B:0,C:0,D:0,E:0,F:0,G:0};
       for(const k of Object.keys(key)){
-        key[k].forEach(n => { if(checked.has(n)) scores[k]++; });
+        key[k].forEach(n => { if(choices[n]===1) scores[k]++; });
       }
       return scores;
     }
 
     function computeWinner(scores){
-      // Devuelve solo UNA, prioridad A→G en empates
+      // Una sola ganadora (prioridad A→G en empates)
       const order = ["A","B","C","D","E","F","G"];
-      let bestKey = order[0];
-      let bestVal = scores[bestKey];
+      let bestKey = order[0], bestVal = scores[order[0]];
       for(const k of order){
-        if(scores[k] > bestVal){
-          bestVal = scores[k];
-          bestKey = k;
-        }
+        if(scores[k] > bestVal){ bestVal = scores[k]; bestKey = k; }
       }
       return {key: bestKey, value: bestVal};
     }
 
+    function validateAll(){
+      // Usa validación nativa HTML5
+      if(!$form.checkValidity()){
+        $form.reportValidity();
+        // scroll a la primera sin responder
+        const firstInvalid = $form.querySelector('input:invalid');
+        if(firstInvalid){
+          firstInvalid.scrollIntoView({behavior:"smooth", block:"center"});
+          firstInvalid.focus({preventScroll:true});
+        }
+        return false;
+      }
+      return true;
+    }
+
     function showResult(){
+      if(!validateAll()) return;
       const scores = calcScores();
       const {key, value} = computeWinner(scores);
       const $res = document.getElementById("result");
-      const $winner = document.getElementById("winner");
-      const $desc = document.getElementById("desc");
-      const $score = document.getElementById("score");
-
-      if(Object.values(scores).every(v => v===0)){
-        $winner.innerHTML = "<span class='danger'>Aún no marcaste ningún 'Verdadero'.</span>";
-        $desc.textContent = "";
-        $score.textContent = "0";
-        $res.style.display = "block";
-        $res.scrollIntoView({behavior:"smooth", block:"start"});
-        return;
-      }
-
-      $winner.textContent = "Inteligencia predominante: " + labels[key];
-      $desc.textContent = descriptions[key];
-      $score.textContent = String(value);
+      document.getElementById("winner").textContent =
+        "Inteligencia predominante: " + labels[key];
+      document.getElementById("desc").textContent = descriptions[key];
+      document.getElementById("score").textContent = String(value);
       $res.style.display = "block";
       $res.scrollIntoView({behavior:"smooth", block:"start"});
     }
 
     document.getElementById("calcBtn").addEventListener("click", showResult);
     document.getElementById("resetBtn").addEventListener("click", () => {
-      document.querySelectorAll('input[type="checkbox"][data-n]').forEach(c => c.checked = false);
+      $form.reset();
       document.getElementById("result").style.display = "none";
       window.scrollTo({top:0, behavior:"smooth"});
     });
