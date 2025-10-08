@@ -25,21 +25,50 @@
     .q{background:radial-gradient(1200px 200px at 10% -10%, rgba(255,255,255,.05), transparent 40%),linear-gradient(180deg,#0c1428 0,#0a1224 100%);border:1px solid var(--border);border-radius:12px;padding:14px 14px 10px;display:flex;gap:12px;align-items:flex-start}
     .q .n{flex:0 0 auto;width:36px;height:36px;border:1px solid var(--border);border-radius:10px;display:grid;place-items:center;background:#0f1a34;color:#9db3ff;font-weight:700}
     .q p{margin:0 0 10px}
+
+    /* Opciones V/F */
     .opts{display:flex;gap:10px;flex-wrap:wrap}
-    .opt{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);background:#0f1a34;border-radius:10px;padding:8px 10px}
+    .opt{
+      display:inline-flex;align-items:center;gap:10px;
+      border:1px solid var(--border);background:#0f1a34;border-radius:12px;padding:8px 12px;
+      cursor:pointer; transition:background .2s ease,border-color .2s ease,box-shadow .2s ease,transform .05s ease;
+      user-select:none;
+    }
+    .opt:hover{ background:#132143; border-color:#283449; }
+    .opt:active{ transform: translateY(1px); }
+    .opt input{cursor:pointer}
+    .opt span{opacity:.95}
+
+    /* Estado SELECCIONADO (se marca por JS con .checked) */
+    .opt.checked{
+      background:#162a56;
+      border-color:#60a5fa;
+      box-shadow:0 0 0 2px rgba(96,165,250,.35) inset, 0 4px 16px rgba(0,0,0,.25);
+    }
+    .opt.checked span{font-weight:700;color:#e2e8f0}
+
+    /* Botones */
     .actions{display:flex;gap:10px;flex-wrap:wrap;padding:16px;border-top:1px solid var(--border);background:linear-gradient(180deg,#0b1429,#0a1224)}
-    button{appearance:none;border:1px solid var(--border);background:#0f1a34;color:var(--text);padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:700}
-    button.primary{background:linear-gradient(180deg,#1f8a4f,#167a44);border-color:#146d3d}
-    button.secondary{background:linear-gradient(180deg,#255da1,#1e4891);border-color:#193f7e}
-    button.ghost{background:transparent}
-    .result{margin:0;padding:18px 18px 22px;border-top:1px dashed var(--border);display:none}
-    .winner{font-size:1.1rem;font-weight:800;margin-bottom:6px}
-    .desc{color:var(--muted)}
-    .chip{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:12px;background:#0f1a34;margin-top:8px}
-    .chip b{color:#bbf7d0}
+    button{appearance:none;border:1px solid var(--border);background:#0f1a34;color:#e5e7eb;padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:700;transition:filter .15s ease,transform .05s ease,background .15s ease}
+    button:hover{filter:brightness(1.15)}
+    button:active{transform:translateY(1px)}
+    button:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}
+    button.primary{background:linear-gradient(180deg,#249d59,#1a874c)}
+    button.secondary{background:linear-gradient(180deg,#2b6dc4,#2354a8)}
+
     .alert{margin:0 16px 12px;color:#fecaca}
-    footer{max-width:1000px;margin:24px auto 32px;padding:0 16px;color:var(--muted);text-align:center}
+    footer{max-width:1000px;margin:24px auto 32px;padding:0 16px;color:#94a3b8;text-align:center}
     .kbd{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;border:1px solid var(--border);border-bottom-width:2px;border-radius:6px;padding:0 6px;background:#0d162c;color:#cbd5e1}
+
+    /* Modal (popup) */
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
+    .overlay.open{display:flex}
+    .modal{width:min(560px,100%);background:linear-gradient(180deg,#0d162d,#0a1224);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);padding:18px}
+    .modal h2{margin:0 0 8px;font-size:1.15rem}
+    .modal p{margin:0 0 10px;color:#cbd5e1}
+    .modal .chip{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:12px;background:#0f1a34; background:#0f1a34; margin:8px 0}
+    .modal .chip b{color:#bbf7d0}
+    .modal .actions{border-top:1px dashed var(--border);margin-top:10px;padding-top:12px;justify-content:flex-end;background:transparent}
   </style>
 </head>
 <body>
@@ -65,16 +94,21 @@
         <button class="secondary" id="resetBtn">Borrar respuestas</button>
         <button class="ghost" id="printBtn" title="Guardar/Imprimir">Imprimir / Guardar PDF</button>
       </div>
+    </div>
+  </div>
 
-      <div class="result" id="result">
-        <div class="winner" id="winner"></div>
-        <div class="desc" id="desc"></div>
-        <div class="chip"><span>Puntaje ganador:</span> <b id="score"></b> <span>/5</span></div>
+  <!-- Modal de resultado -->
+  <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalDesc">
+    <div class="modal">
+      <h2 id="modalTitle">Resultado</h2>
+      <p id="modalDesc"></p>
+      <div class="chip"><span>Puntaje ganador:</span> <b id="modalScore"></b> <span>/5</span></div>
+      <div class="actions">
+        <button class="primary" id="okBtn">Aceptar</button>
       </div>
     </div>
   </div>
 
-  <footer>Archivo HTML + CSS (con JS mínimo). Podés abrirlo localmente o subirlo a <span class="kbd">GitHub Pages</span>, <span class="kbd">Vercel</span> o <span class="kbd">Netlify</span>.</footer>
 
   <script>
     // Ítems (35)
@@ -146,31 +180,52 @@
       G: "Entender a los demás, empatía, trabajo en equipo y liderazgo social."
     };
 
-    // Render dinámico con radios Verdadero/Falso (obligatorio)
+    // Render con radios Verdadero/Falso (obligatorio)
     const $form = document.getElementById("miForm");
     const $q = document.getElementById("questions");
-    items.forEach((txt, i) => {
-      const n = i + 1;
-      const wrap = document.createElement("div");
-      wrap.className = "q";
-      wrap.innerHTML = `
-        <div class="n">${n}</div>
-        <div style="flex:1">
-          <p>${txt}</p>
-          <div class="opts" role="radiogroup" aria-label="Pregunta ${n}">
-            <label class="opt">
-              <input type="radio" name="q${n}" value="1" required>
-              Verdadero
-            </label>
-            <label class="opt">
-              <input type="radio" name="q${n}" value="0">
-              Falso
-            </label>
+
+    function render(){
+      items.forEach((txt, i) => {
+        const n = i + 1;
+        const wrap = document.createElement("div");
+        wrap.className = "q";
+        wrap.innerHTML = `
+          <div class="n">${n}</div>
+          <div style="flex:1">
+            <p>${txt}</p>
+            <div class="opts" role="radiogroup" aria-label="Pregunta ${n}">
+              <label class="opt">
+                <input type="radio" name="q${n}" value="1" required>
+                <span>Verdadero</span>
+              </label>
+              <label class="opt">
+                <input type="radio" name="q${n}" value="0">
+                <span>Falso</span>
+              </label>
+            </div>
           </div>
-        </div>
-      `;
-      $q.appendChild(wrap);
-    });
+        `;
+        $q.appendChild(wrap);
+      });
+    }
+    render();
+
+    // Visual "checked": marcar/desmarcar clase .checked en labels
+    function wireCheckedStyles(){
+      const groups = new Map(); // name -> [labels]
+      document.querySelectorAll('.opt input[type="radio"]').forEach(input=>{
+        const label = input.closest('.opt');
+        const name = input.name;
+        if(!groups.has(name)) groups.set(name, []);
+        groups.get(name).push(label);
+
+        input.addEventListener('change', ()=>{
+          groups.get(name).forEach(l => l.classList.remove('checked'));
+          if(input.checked) label.classList.add('checked');
+        });
+      });
+    }
+    wireCheckedStyles();
 
     function getValues(){
       const vals = {};
@@ -201,10 +256,8 @@
     }
 
     function validateAll(){
-      // Usa validación nativa HTML5
       if(!$form.checkValidity()){
         $form.reportValidity();
-        // scroll a la primera sin responder
         const firstInvalid = $form.querySelector('input:invalid');
         if(firstInvalid){
           firstInvalid.scrollIntoView({behavior:"smooth", block:"center"});
@@ -215,23 +268,33 @@
       return true;
     }
 
+    // --- Modal helpers ---
+    const overlay = document.getElementById('overlay');
+    const okBtn = document.getElementById('okBtn');
+    function openModal(title, text, score){
+      document.getElementById('modalTitle').textContent = title;
+      document.getElementById('modalDesc').textContent = text;
+      document.getElementById('modalScore').textContent = String(score);
+      overlay.classList.add('open');
+      okBtn.focus();
+    }
+    function closeModal(){ overlay.classList.remove('open'); }
+    overlay.addEventListener('click', (e)=>{ if(e.target === overlay) closeModal(); });
+    document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape' && overlay.classList.contains('open')) closeModal(); });
+    okBtn.addEventListener('click', closeModal);
+
     function showResult(){
       if(!validateAll()) return;
       const scores = calcScores();
       const {key, value} = computeWinner(scores);
-      const $res = document.getElementById("result");
-      document.getElementById("winner").textContent =
-        "Inteligencia predominante: " + labels[key];
-      document.getElementById("desc").textContent = descriptions[key];
-      document.getElementById("score").textContent = String(value);
-      $res.style.display = "block";
-      $res.scrollIntoView({behavior:"smooth", block:"start"});
+      openModal("Inteligencia predominante: " + labels[key], descriptions[key], value);
     }
 
     document.getElementById("calcBtn").addEventListener("click", showResult);
     document.getElementById("resetBtn").addEventListener("click", () => {
       $form.reset();
-      document.getElementById("result").style.display = "none";
+      // quitar estilos de selección visibles
+      document.querySelectorAll('.opt.checked').forEach(el => el.classList.remove('checked'));
       window.scrollTo({top:0, behavior:"smooth"});
     });
     document.getElementById("printBtn").addEventListener("click", () => window.print());
